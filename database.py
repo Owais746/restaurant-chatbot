@@ -24,7 +24,19 @@ def _get_setting(key: str):
 
 class RestaurantDatabase:
     def __init__(self):
-        self.client = MongoClient(_get_setting('MONGODB_URI') or 'mongodb://localhost:27017/')
+        mongo_uri = _get_setting('MONGODB_URI')
+        if not mongo_uri:
+            raise RuntimeError(
+                "MONGODB_URI is not set. Add it to .env for local runs or Streamlit Secrets for deployment."
+            )
+
+        self.client = MongoClient(
+            mongo_uri,
+            serverSelectionTimeoutMS=8000,
+            connectTimeoutMS=8000,
+            socketTimeoutMS=8000,
+        )
+        self.client.admin.command('ping')
         self.db = self.client['restaurant_chatbot']
         self.menu_collection = self.db['menu']
         self.orders_collection = self.db['orders']

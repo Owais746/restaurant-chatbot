@@ -29,13 +29,23 @@ def init_database():
 def init_ai_client():
     return OpenRouterClient()
 
-db = init_database()
+try:
+    db = init_database()
+except Exception as e:
+    db = None
+    db_init_error = e
+
 ai_client = init_ai_client()
 
 
 def login_page():
     st.title("🍕 Broadway Pizza")
     st.subheader("Welcome! Please enter your name")
+
+    if db is None:
+        st.error("Database is not connected. Please set MONGODB_URI in Streamlit Secrets (or .env locally).")
+        st.code(str(db_init_error))
+        st.stop()
     
     name = st.text_input("Your Name:", key="login_name")
     
@@ -52,6 +62,17 @@ def login_page():
 
 
 def main():
+    if db is None:
+        st.set_page_config(
+            page_title="Broadway Pizza Chatbot",
+            page_icon="🍕",
+            layout="wide"
+        )
+        st.title("🍕 Broadway Pizza")
+        st.error("Database is not connected. Please set MONGODB_URI in Streamlit Secrets (or .env locally).")
+        st.code(str(db_init_error))
+        st.stop()
+
     if not st.session_state.authenticated:
         login_page()
         return
